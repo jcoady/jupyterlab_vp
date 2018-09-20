@@ -1,0 +1,48 @@
+{
+  "name": "jupyterlab_vp",
+  "version": "0.1.6",
+  "description": "Prototype extension",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "homepage": "https://github.com/jcoady/jupyterlab_vp",
+  "bugs": {
+    "url": "https://github.com/jcoady/jupyterlab_vp/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": "John Coady",
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jcoady/jupyterlab_vp.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf lib",
+    "watch": "tsc -w",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@jupyterlab/application": "^0.18.4",
+    "@jupyterlab/apputils": "^0.18.4",
+    "@jupyterlab/docregistry": "^0.18.4",
+    "@jupyterlab/notebook": "^0.18.4",
+    "@phosphor/disposable": "^1.1.2",
+    "script-loader": "^0.7.2"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.1",
+    "script-loader": "^0.7.2",
+    "typescript": "~2.9.2"
+  },
+  "jupyterlab": {
+    "extension": true
+  }
+}
