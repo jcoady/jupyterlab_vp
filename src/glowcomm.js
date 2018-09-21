@@ -7,79 +7,28 @@ import 'script-loader!./vpython_libraries/jquery-ui.custom.min.js';
 import 'script-loader!./vpython_libraries/glow.min.js';
 import 'script-loader!./vpython_libraries/plotly.min.js';
 
-export var comm2
+export var comm
 
 var datadir = window.location.href + '/static/vpython_data/'
 window.Jupyter_VPython = "/lab/static/vpython_data/" // prefix used by glow.min.js for textures
 
 function fontloading() {
-    /*
-	if (typeof window.JLab_VPython !== 'undefined') {
-		console.log("window.JLab_VPython is defined value = ",window.JLab_VPython);
-	} else {
-		console.log("window.JLab_VPython is NOT defined!");
-	}
-    // Test loading of images
-	
-    var img_sample = require(`./vpython_data/flower_texture.jpg`);
-	console.log("flower_texture.jpg : ",img_sample);        // works OK
-	
-	import(`./vpython_data/granite_texture.jpg`).then(granite_img => {
-        console.log('granite_texture.jpg :',granite_img);
-	}).catch(
-	    console.log('granite_texture not loaded yet')
-	);
-	*/
-	// Import (or require) the target file(s) in one of the bundle's files.
-	// import img_sample from './vpython_data/flower_texture.jpg'
-	
-    //var fsans = datadir+'Roboto-Medium.ttf'
-	//var target = 'Roboto-Medium'
-	//import(fsans).then(fontrefsans => {
-	//    window.__font_sans = fontrefsans // an opentype.js Font object
-    //    console.log('SANS-SERIF FONT LOADED')
-	//});
-	
-	/*
-	var fontrefsans = require(`./vpython_data/Roboto-Medium.ttf`);
-	window.__font_sans = fontrefsans ;
-	console.log(window.__font_sans);
-	*/
-	/*
-	import(`./vpython_data/Roboto-Medium.ttf`).then(fontrefsans => {
-	    window.__font_sans = fontrefsans // an opentype.js Font object
-		console.log(window.__font_sans);
-        console.log('SANS-SERIF FONT LOADED')
-	}).catch(
-	    console.log('SANS-SERIF font could not be loaded')
-	);
-	*/
-	
     var fsans = datadir+'Roboto-Medium.ttf'
     opentype_load(fsans, function(err, fontrefsans) {
         if (err) throw new Error('Font ' + fsans + ' could not be loaded: ' + err)
         window.__font_sans = fontrefsans // an opentype.js Font object
         console.log('SANS-SERIF FONT LOADED')
     })
-	
-	
     var fserif = datadir+'NimbusRomNo9L-Med.otf'
     opentype_load(fserif, function(err, fontrefserif) {
         if (err) throw new Error('Font ' + fserif + ' could not be loaded: ' + err)
         window.__font_serif = fontrefserif // an opentype.js Font object
         console.log('SERIF FONT LOADED')
     })
-	
 }
 fontloading()
 
-var printError = function(error, explicit) {
-    console.log(`[${explicit ? 'EXPLICIT' : 'INEXPLICIT'}] ${error.name}: ${error.message}`);
-}
- 
 export function onmessage(msg) {
-    try {
-		//console.log(msg);
 		if (timer !== null) clearTimeout(timer)
 		var t1 = msclock()
 		var data = msg.content.data
@@ -91,14 +40,6 @@ export function onmessage(msg) {
 		var dt = Math.floor(t1+interval-t2) // attempt to keep the time between renders constant
 		if (dt < 15) dt = 0     // becaause setTimeout is inaccurate for small dt's
 		timer = setTimeout(send, dt)
-	} catch (e) {
-	    if (e instanceof ReferenceError) {
-			printError(e, true);
-		} else {
-			printError(e, false);
-		}
-	}
-
 }
 
 // The following is necessary to be able to re-run programs.
@@ -110,7 +51,7 @@ function send() { // periodically send events and update_canvas and request obje
 	var update = update_canvas()
 	if (update !== null) events = events.concat(update)
 	if (events.length === 0) events = [{event:'update_canvas', 'trigger':1}]
-	if (comm2) comm2.send( events )
+	if (comm) comm.send( events )
 	events = []
 }
 
@@ -134,6 +75,7 @@ var lastpos = vec(0,0,0)
 var lastray = vec(0,0,0)
 var lastforward = vec(0,0,0)
 var lastup = vec(0,0,0)
+var lastcenter = vec(0,0,0)
 var lastrange = 1
 var lastautoscale = true
 var lastsliders = {}
@@ -162,9 +104,20 @@ function update_canvas() { // mouse location and other stuff
 			}
 			lastforward = forward
 			var up = cvs.up
-			if (!up.equals(lastup)) {evt.up = [up.x,up.y,up.z]; dosend=true}
+			if (!up.equals(lastup)) {
+                evt.up = [up.x,up.y,up.z]
+                dosend=true
+            }
 			lastup = up
 		}
+        if (cvs.userpan) {
+            var center = cvs.center
+            if (!center.equals(lastcenter)) {
+                evt.center = [center.x,center.y,center.z]
+                dosend=true
+            }
+            lastcenter = center
+        }
 		if (cvs.userzoom) {
 			var range = cvs.range
 			if (range !== lastrange) {evt.range=range; dosend=true}
@@ -666,7 +619,6 @@ function handle_cmds(dcmds) {
 			case 'canvas':        {
 				var container = document.getElementById("glowscript");
 				if (container !== null) {
-					console.log("found container by glowscript id");
 					window.__context = { glowscript_container: $("#glowscript").removeAttr("id")}
 				}
 				glowObjs[idx] = canvas(cfg)

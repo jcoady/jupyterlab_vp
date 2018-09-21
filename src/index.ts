@@ -43,7 +43,7 @@ class VPythonExtension implements DocumentRegistry.IWidgetExtension<NotebookPane
 		kernelInstance.registerCommTarget('glow', (comm) => {
 			// Use Dynamic import() Expression to import glowcomm when comm is opened
 			import("./glowcomm").then(glowcomm => {
-				glowcomm.comm2 = comm
+				glowcomm.comm = comm
 			    comm.onMsg = glowcomm.onmessage
 			});
 			
