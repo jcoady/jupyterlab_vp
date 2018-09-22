@@ -6,6 +6,8 @@ import 'script-loader!./vpython_libraries/jquery.min.js';
 import 'script-loader!./vpython_libraries/jquery-ui.custom.min.js';
 import 'script-loader!./vpython_libraries/glow.min.js';
 import 'script-loader!./vpython_libraries/plotly.min.js';
+import '../style/jquery-ui.custom.css'
+import '../style/ide.css'
 
 export var comm
 
