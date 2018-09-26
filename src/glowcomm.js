@@ -44,17 +44,22 @@ fontloading()
 
 export function onmessage(msg) {
     "use strict";
-    if (timer !== null) clearTimeout(timer)
-    var t1 = msclock()
-    var data = msg.content.data
-    if (data != 'trigger') {
-        var msg = decode(data)
-        handler(msg)
-    }
-    var t2 = msclock()
-    var dt = Math.floor(t1+interval-t2) // attempt to keep the time between renders constant
-    if (dt < 15) dt = 0     // becaause setTimeout is inaccurate for small dt's
-    timer = setTimeout(send, dt)
+	try {	
+		if (timer !== null) clearTimeout(timer)
+		var t1 = msclock()
+		var data = msg.content.data
+		if (data != 'trigger') {
+			var msg = decode(data)
+			handler(msg)
+		}
+		var t2 = msclock()
+		var dt = Math.floor(t1+interval-t2) // attempt to keep the time between renders constant
+		if (dt < 15) dt = 0     // becaause setTimeout is inaccurate for small dt's
+			timer = setTimeout(send, dt)
+	}
+	catch(err) {
+		console.log("glowcomm onmessage error : ",err.message);
+	}
 }
 
 // The following is necessary to be able to re-run programs.
@@ -63,11 +68,16 @@ if (timer !== undefined && timer !== null) clearTimeout(timer)
 
 function send() { // periodically send events and update_canvas and request object update
     "use strict";
-	var update = update_canvas()
-	if (update !== null) events = events.concat(update)
-	if (events.length === 0) events = [{event:'update_canvas', 'trigger':1}]
-	if (comm) comm.send( events )
-	events = []
+	try{
+		var update = update_canvas()
+		if (update !== null) events = events.concat(update)
+		if (events.length === 0) events = [{event:'update_canvas', 'trigger':1}]
+		if (comm) comm.send( events )
+		events = []
+	}
+	catch(err) {
+		console.log("Comm send error: ", err.message);
+	}
 }
 
 // *************************************************************************************************** //
@@ -636,6 +646,17 @@ function handle_cmds(dcmds) {
 				}
 				glowObjs[idx] = canvas(cfg)
 				glowObjs[idx]['idx'] = idx
+				try{
+					glowObjs[idx].wrapper[0].addEventListener("contextmenu", function(event){
+						//console.log("contextmenu event detected on canvas")
+						event.preventDefault(); 
+						event.stopPropagation(); 
+					});
+				}
+				catch(err) {
+					console.log("glowcomm canvas contextmenu event : ",err.message);
+				}
+
 				break
 					// Display frames per second and render time:
 					//$("<div id='fps'/>").appendTo(glowObjs[idx].title)

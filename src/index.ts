@@ -39,16 +39,21 @@ class VPythonExtension implements DocumentRegistry.IWidgetExtension<NotebookPane
 		const session = context.session;
 		const kernelInstance = session.kernel;
 		(<any>window).JLab_VPython = true;
-				
-		kernelInstance.registerCommTarget('glow', (comm) => {
-			// Use Dynamic import() Expression to import glowcomm when comm is opened
-			import("./glowcomm").then(glowcomm => {
-				glowcomm.comm = comm
-			    comm.onMsg = glowcomm.onmessage
-			});
+
+ 		try {	
+			kernelInstance.registerCommTarget('glow', (vp_comm) => {
+				// Use Dynamic import() Expression to import glowcomm when comm is opened
+				import("./glowcomm").then(glowcomm => {
+					glowcomm.comm = vp_comm
+					vp_comm.onMsg = glowcomm.onmessage
+				});
 			
-			comm.onClose = (msg) => {console.log("comm onClose");};
-		});
+				vp_comm.onClose = (msg) => {console.log("comm onClose");};
+			});
+		}
+		catch(err) {
+			console.log("register glow error : ",err.message);
+		}
 		
     });
 	
