@@ -10,6 +10,38 @@ import '../style/jquery-ui.custom.css'
 import '../style/ide.css'
 
 export var comm
+var ws = null
+var isopen = false
+
+console.log('START OF GLOWCOMM')
+
+export function createWebsocket(msg) {
+    if (msg.content.data.wsport !== undefined) {
+        // create websocket instance
+		var port = msg.content.data.wsport
+		var uri = msg.content.data.wsuri
+        ws = new WebSocket("ws://localhost:" + port + uri);
+	    ws.binaryType = "arraybuffer";
+		
+        // Handle incoming websocket message callback
+        ws.onmessage = function(evt) {
+            console.log("WebSocket Message Received: " + evt.data)
+        };
+ 
+        // Close Websocket callback
+        ws.onclose = function(evt) {
+            ws = null
+            isopen = false
+            console.log("***WebSocket Connection Closed***");
+        };
+ 
+        // Open Websocket callback
+        ws.onopen = function(evt) {
+            isopen = true
+            console.log("***WebSocket Connection Opened***");
+        };
+    }
+}
 
 var datadir = window.location.href + '/static/vpython_data/'
 window.Jupyter_VPython = "/lab/static/vpython_data/" // prefix used by glow.min.js for textures
@@ -72,13 +104,19 @@ function send() { // periodically send events and update_canvas and request obje
 		var update = update_canvas()
 		if (update !== null) events = events.concat(update)
 		if (events.length === 0) events = [{event:'update_canvas', 'trigger':1}]
-		if (comm) comm.send( events )
+		if (ws && isopen) {
+			var msg = JSON.stringify(events)
+			ws.send(msg)
+		} else if (comm) {
+			comm.send( events )
+		}
 		events = []
 	}
 	catch(err) {
 		console.log("Comm send error: ", err.message);
 	}
 }
+
 
 // *************************************************************************************************** //
 // THE REST OF THIS FILE IS IDENTICAL IN glowcomm.html AND glowcomm.js (except for the last few lines) //
@@ -648,7 +686,6 @@ function handle_cmds(dcmds) {
 				glowObjs[idx]['idx'] = idx
 				try{
 					glowObjs[idx].wrapper[0].addEventListener("contextmenu", function(event){
-						//console.log("contextmenu event detected on canvas")
 						event.preventDefault(); 
 						event.stopPropagation(); 
 					});

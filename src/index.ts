@@ -41,11 +41,14 @@ class VPythonExtension implements DocumentRegistry.IWidgetExtension<NotebookPane
 		(<any>window).JLab_VPython = true;
 
  		try {	
-			kernelInstance.registerCommTarget('glow', (vp_comm) => {
+			kernelInstance.registerCommTarget('glow', (vp_comm, commMsg) => {
 				// Use Dynamic import() Expression to import glowcomm when comm is opened
 				import("./glowcomm").then(glowcomm => {
 					glowcomm.comm = vp_comm
 					vp_comm.onMsg = glowcomm.onmessage
+					
+					glowcomm.createWebsocket(commMsg)
+					
 				});
 			
 				vp_comm.onClose = (msg) => {console.log("comm onClose");};
